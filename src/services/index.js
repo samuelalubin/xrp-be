@@ -1,0 +1,9 @@
+module.exports.authService = require('./auth.service');
+module.exports.emailService = require('./email.service');
+module.exports.tokenService = require('./token.service');
+module.exports.userService = require('./user.service');
+module.exports.depositService = require('./deposit.service');
+module.exports.xrpService = require('./xrp.service');
+module.exports.xrplService = require('./xrpl.service');
+module.exports.portfolioService = require('./portfolio.service');
+module.exports.historyService = require('./history.service');

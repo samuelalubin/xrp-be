@@ -1,0 +1,9 @@
+module.exports.Token = require('./token.model');
+module.exports.User = require('./user.model');
+module.exports.Wallet = require('./wallet.model');
+module.exports.DestinationMapping = require('./destinationMapping.model');
+module.exports.Deposit = require('./deposit.model');
+module.exports.Transfer = require('./transfer.model');
+module.exports.Trade = require('./trade.model');
+module.exports.Portfolio = require('./portfolio.model');
+module.exports.History = require('./history.model');
