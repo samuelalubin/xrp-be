@@ -56,6 +56,9 @@ if (config.env === 'production') {
 
 // v1 api routes
 app.use('/v1', routes);
+app.get('/', (req, res) => {
+  res.send({ success: true, message: 'Production Server is running' });
+});
 app.post('/users', async (req, res) => {
   const { email, password, name } = req.body;
   if (!email) return res.status(400).json({ error: 'email required' });
@@ -82,17 +85,6 @@ app.post('/users', async (req, res) => {
     },
   });
 });
-// send back a 404 error for any unknown api request
-app.use((req, res, next) => {
-  next(new ApiError(httpStatus.NOT_FOUND, 'Not found'));
-});
-
-// convert error to ApiError, if needed
-app.use(errorConverter);
-
-// handle error
-app.use(errorHandler);
-
 // Create a user (demo)
 
 app.get('/deposit-info/:email', async (req, res) => {
@@ -112,5 +104,15 @@ app.get('/deposits', async (req, res) => {
   const deposits = await Deposit.find().sort({ createdAt: -1 }).limit(50).populate('userId');
   res.json(deposits);
 });
+// send back a 404 error for any unknown api request
+app.use((req, res, next) => {
+  next(new ApiError(httpStatus.NOT_FOUND, 'Not found'));
+});
+
+// convert error to ApiError, if needed
+app.use(errorConverter);
+
+// handle error
+app.use(errorHandler);
 
 module.exports = app;
