@@ -196,7 +196,7 @@ const sendXrpPayment = async (userId, destination, amountXRP, destinationTag) =>
 
   // ✅ Extract details from result
   //   const txHash = result.result.tx_json.hash;
-  const txHash = result.result.tx_json?.hash || result.result.hash;
+  const txHash = result.result.tx_json.hash || result.result.hash;
   const txStatus = result.result.meta.TransactionResult;
   const explorerUrl = `https://testnet.xrpl.org/transactions/${txHash}`;
 
