@@ -17,10 +17,21 @@ const createUser = async (userBody) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
   const { email, password, name } = userBody;
+  console.log(email, password, name);
   const last = await DestinationMapping.findOne().sort({ destinationTag: -1 });
   const nextTag = last ? last.destinationTag + 1 : 1000;
 
-  const user = new User({ email, password, name, destinationTag: nextTag });
+  const user = new User({
+    email,
+    password,
+    name,
+    destinationTag: nextTag,
+    deposit: {
+      address: DEPOSIT_WALLET_ADDRESS,
+      destinationTag: nextTag,
+      memo: `Send XRP to address and include destinationTag ${nextTag}`,
+    },
+  });
   await user.save();
 
   const mapping = new DestinationMapping({
@@ -29,15 +40,15 @@ const createUser = async (userBody) => {
   });
   await mapping.save();
 
-  return User.create({
-    user: { id: user._id, email: user.email },
-    deposit: {
-      address: DEPOSIT_WALLET_ADDRESS,
-      destinationTag: nextTag,
-      memo: `Send XRP to address and include destinationTag ${nextTag}`,
-    },
-  });
-  // return User.create(userBody);
+  // return User.create({
+  //   user: { id: user._id, email: user.email },
+  //   deposit: {
+  //     address: DEPOSIT_WALLET_ADDRESS,
+  //     destinationTag: nextTag,
+  //     memo: `Send XRP to address and include destinationTag ${nextTag}`,
+  //   },
+  // });
+  return user;
 };
 
 /**
