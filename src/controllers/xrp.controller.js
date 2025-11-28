@@ -41,7 +41,7 @@ const sendPayment = async (req, res) => {
   try {
     // ✅ Extract fields from request body
     const { userId, destination, amount, destinationTag } = req.body;
-
+    console.log(userId, destination, amount, destinationTag);
     // ✅ Simple validation
     if (!userId || !destination || !amount) {
       return res.status(httpStatus.BAD_REQUEST).json({

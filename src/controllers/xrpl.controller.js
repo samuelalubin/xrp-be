@@ -227,6 +227,73 @@ const sellMemecoin = async (req, res) => {
   }
 };
 
+const sellTokenMarket = async ({ tokenAmount, tokenCurrency, tokenIssuer, userAddress }) => {
+  const client = await getClient();
+  const wallet = await getWallet();
+
+  // Fetch buy offers (buyers who want the token — they pay XRP)
+  const buyOffers = await this.getBuyOffers({ currency: tokenCurrency, issuer: tokenIssuer, limit: 200 });
+
+  // Estimate how much XRP we'll get when selling tokenAmount
+  let remainingToken = Big(tokenAmount);
+  let accXrp = Big(0);
+
+  for (const o of buyOffers) {
+    // o.TakerGets will be XRP (buyers want XRP), o.TakerPays will be token (value)
+    let offerXrp, offerToken;
+    if (o.TakerGets && (o.TakerGets.currency === 'XRP' || o.TakerGets === 'XRP')) {
+      if (o.TakerGets.value) offerXrp = Big(o.TakerGets.value);
+      else if (o.TakerGets.amount) offerXrp = Big(xrpl.dropsToXrp(o.TakerGets.amount));
+      else offerXrp = Big(o.TakerGets); // fallback
+    } else if (o.taker_gets && o.taker_gets.currency === 'XRP') {
+      offerXrp = Big(xrpl.dropsToXrp(o.taker_gets.amount || 0));
+    } else {
+      continue;
+    }
+
+    if (o.TakerPays && o.TakerPays.value) offerToken = Big(o.TakerPays.value);
+    else if (o.taker_pays && o.taker_pays.currency) offerToken = Big(o.taker_pays.value || 0);
+    else offerToken = Big(0);
+
+    if (remainingToken.lte(0)) break;
+
+    if (offerToken.lte(remainingToken)) {
+      // take full offer
+      // price = offerXrp / offerToken => xrpReceived = offerXrp
+      accXrp = accXrp.plus(offerXrp);
+      remainingToken = remainingToken.minus(offerToken);
+    } else {
+      // partially take
+      // xrpReceived = offerXrp * (remainingToken / offerToken)
+      const fraction = remainingToken.div(offerToken);
+      accXrp = accXrp.plus(offerXrp.times(fraction));
+      remainingToken = Big(0);
+      break;
+    }
+  }
+
+  if (accXrp.eq(0)) throw new Error('No buy-side liquidity for token');
+
+  // Create OfferCreate: TakerGets = token (value), TakerPays = XRP (drops)
+  const tx = {
+    TransactionType: 'OfferCreate',
+    Account: wallet.address,
+    TakerGets: {
+      currency: tokenCurrency,
+      issuer: tokenIssuer,
+      value: tokenAmount,
+    },
+    TakerPays: xrpl.xrpToDrops(accXrp.toString()),
+    Flags: xrpl.common.txFlags.OfferCreate.Sell,
+  };
+
+  const prepared = await client.autofill(tx);
+  const signed = wallet.sign(prepared);
+  const resp = await client.submitAndWait(signed.tx_blob);
+
+  return { resp, tx_hash: signed.hash, xrpReceivedEstimate: accXrp.toString() };
+};
+
 module.exports = {
   buyMemecoin,
   sellMemecoin,

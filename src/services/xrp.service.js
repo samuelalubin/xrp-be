@@ -102,6 +102,7 @@
 const xrpl = require('xrpl');
 const { User } = require('../models');
 const Transfer = require('../models/transfer.model');
+const { getIO } = require('../socket');
 
 /**
  * Send XRP payment after verifying user's stored balance
@@ -137,8 +138,10 @@ const sendXrpPayment = async (userId, destination, amountXRP, destinationTag) =>
 
   // ✅ Deduct the amount from user’s totalAmount and totalAmountDrops
   user.totalAmount = availableAmount - enteredAmount;
+
   user.totalAmountDrops = user.totalAmount * 1_000_000; // convert XRP → drops
   await user.save();
+  console.log(user);
 
   // ✅ Check on-chain XRPL wallet balance
   const accountInfo = await client.request({
@@ -231,7 +234,9 @@ const sendXrpPayment = async (userId, destination, amountXRP, destinationTag) =>
     explorerUrl,
     rawResponse: result.result,
   });
-
+  if (user) {
+    getIO().emit(`xrpReceived${user._id}`, user);
+  }
   // ✅ Return transaction details
   return {
     hash: txHash,

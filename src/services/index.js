@@ -7,3 +7,4 @@ module.exports.xrpService = require('./xrp.service');
 module.exports.xrplService = require('./xrpl.service');
 module.exports.portfolioService = require('./portfolio.service');
 module.exports.historyService = require('./history.service');
+module.exports.xrplService2 = require('./xrpl2.service');
