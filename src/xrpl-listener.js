@@ -6,6 +6,37 @@ const User = require('./models/user.model');
 const { DEPOSIT_WALLET_ADDRESS, XRPL_SERVER } = process.env;
 const { getIO } = require('./socket');
 
+const getXrpUsdPrice = async () => {
+  // const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ripple&vs_currencies=usd');
+  const response = await fetch('https://min-api.cryptocompare.com/data/pricemulti?fsyms=XRP&tsyms=USD');
+  const data = await response.json();
+  // return data.ripple.usd; // price in USD
+  return data.XRP.USD; // price in USD
+};
+const calculateFees = async (xrpAmount) => {
+  const xrpUsdPrice = await getXrpUsdPrice();
+
+  // 0.15% fee in XRP
+  const percentageFeeXrp = xrpAmount * 0.0015;
+  console.log(percentageFeeXrp, 'xrpUsdPrice');
+
+  // Minimum fee $0.95 converted to XRP
+  const minFeeXrp = 0.95 / xrpUsdPrice;
+  console.log(minFeeXrp, 'xrpUsdPrice');
+
+  // Pick the larger fee
+  const feeXrp = Math.max(percentageFeeXrp, minFeeXrp);
+  console.log(feeXrp, 'xrpUsdPrice');
+  console.log(xrpAmount - feeXrp, 'xrpUsdPrice');
+
+  return {
+    // xrpUsdPrice,
+    transactionFees: feeXrp,
+    buyingFees: xrpAmount - feeXrp,
+    // feeInUsd: feeXrp * xrpUsdPrice
+  };
+};
+
 async function startXRPLListener(mongoose) {
   console.log('kuch bhi 1');
   const client = new xrpl.Client(XRPL_SERVER);
@@ -53,8 +84,21 @@ async function startXRPLListener(mongoose) {
       console.log('1111111');
       console.log(exists, '1111111');
       if (exists) {
+        console.log('ddddddddddddddd');
+        const { transactionFees, buyingFees } = await calculateFees(amountXRP);
+        exists.transactionFees = transactionFees;
+        await exists.save();
         console.log(exists);
         const user = await User.findOne({ destinationTag });
+        user.totalAmount -= Number(amountXRP);
+        user.totalAmountDrops -= Number(amountXRP * 1_000_000);
+        user.totalAmount += Number(buyingFees);
+        user.totalAmountDrops += Number(buyingFees * 1_000_000);
+        await user.save();
+        const c2 = await User.findOneAndUpdate(
+          { role: 'admin' },
+          { $inc: { totalAmount: transactionFees, totalAmountDrops: transactionFees * 1_000_000 } }
+        );
         console.log(user);
         if (user) {
           console.log(user._id);
@@ -62,6 +106,7 @@ async function startXRPLListener(mongoose) {
         }
       } else {
         console.log('2222222');
+        const { transactionFees, buyingFees } = await calculateFees(amountXRP);
 
         const deposit = new Deposit({
           txId,
@@ -73,16 +118,21 @@ async function startXRPLListener(mongoose) {
           destinationTag,
           validated,
           raw: tx,
+          transactionFees: transactionFees,
         });
 
         await deposit.save();
         console.log('💰 New deposit', txId, 'amount', amountXRP, 'tag', destinationTag);
-        const user2 = await User.findOne({ destinationTag });
-        console.log(user2, amountXRP, drops);
+        // const user2 = await User.findOne({ destinationTag });
+        // console.log(user2, amountXRP, drops);
 
         const user = await User.findOneAndUpdate(
           { destinationTag },
-          { $inc: { totalAmount: amountXRP, totalAmountDrops: drops } }
+          { $inc: { totalAmount: buyingFees, totalAmountDrops: buyingFees * 1_000_000 } }
+        );
+        const c2 = await User.findOneAndUpdate(
+          { role: 'admin' },
+          { $inc: { totalAmount: transactionFees, totalAmountDrops: transactionFees * 1_000_000 } }
         );
         console.log(user);
         if (user) {

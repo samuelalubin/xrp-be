@@ -100,7 +100,7 @@
 // ________________________________________________________
 
 const xrpl = require('xrpl');
-const { User } = require('../models');
+const { User, Deposit } = require('../models');
 const Transfer = require('../models/transfer.model');
 const { getIO } = require('../socket');
 
@@ -110,6 +110,37 @@ const { getIO } = require('../socket');
  * - Deducts it, updates user record
  * - Sends payment to destination wallet
  */
+const getXrpUsdPrice = async () => {
+  // const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ripple&vs_currencies=usd');
+  const response = await fetch('https://min-api.cryptocompare.com/data/pricemulti?fsyms=XRP&tsyms=USD');
+  const data = await response.json();
+  // return data.ripple.usd; // price in USD
+  return data.XRP.USD; // price in USD
+};
+const calculateFees = async (xrpAmount) => {
+  const xrpUsdPrice = await getXrpUsdPrice();
+
+  // 0.15% fee in XRP
+  const percentageFeeXrp = xrpAmount * 0.0015;
+  console.log(percentageFeeXrp, 'xrpUsdPrice');
+
+  // Minimum fee $0.95 converted to XRP
+  const minFeeXrp = 0.95 / xrpUsdPrice;
+  console.log(minFeeXrp, 'xrpUsdPrice');
+
+  // Pick the larger fee
+  const feeXrp = Math.max(percentageFeeXrp, minFeeXrp);
+  console.log(feeXrp, 'xrpUsdPrice');
+  console.log(xrpAmount - feeXrp, 'xrpUsdPrice');
+
+  return {
+    // xrpUsdPrice,
+    transactionFees: feeXrp,
+    buyingFees: xrpAmount - feeXrp,
+    // feeInUsd: feeXrp * xrpUsdPrice
+  };
+};
+
 const sendXrpPayment = async (userId, destination, amountXRP, destinationTag) => {
   // ✅ Connect to XRPL testnet
   const client = new xrpl.Client('wss://s.altnet.rippletest.net:51233');
@@ -135,6 +166,7 @@ const sendXrpPayment = async (userId, destination, amountXRP, destinationTag) =>
     await client.disconnect();
     throw new Error(`Insufficient stored funds: Available ${availableAmount} XRP, required ${enteredAmount} XRP`);
   }
+  const { transactionFees, buyingFees } = await calculateFees(enteredAmount);
 
   // ✅ Deduct the amount from user’s totalAmount and totalAmountDrops
   user.totalAmount = availableAmount - enteredAmount;
@@ -164,10 +196,12 @@ const sendXrpPayment = async (userId, destination, amountXRP, destinationTag) =>
   }
 
   // ✅ Build transaction object
+  const roundedXrp = Number(buyingFees.toFixed(6));
+
   const tx = {
     TransactionType: 'Payment',
     Account: senderAddress,
-    Amount: xrpl.xrpToDrops(enteredAmount),
+    Amount: xrpl.xrpToDrops(roundedXrp),
     Destination: destination,
     DestinationTag: destinationTag || user.destinationTag, // fallback to user's tag if not provided
   };
@@ -234,9 +268,28 @@ const sendXrpPayment = async (userId, destination, amountXRP, destinationTag) =>
     explorerUrl,
     rawResponse: result.result,
   });
+  const c2 = await User.findOneAndUpdate(
+    { role: 'admin' },
+    { $inc: { totalAmount: transactionFees, totalAmountDrops: transactionFees * 1_000_000 } }
+  );
   if (user) {
     getIO().emit(`xrpReceived${user._id}`, user);
   }
+  const deposit = new Deposit({
+    txId: txHash,
+    userId,
+    amountXRP: enteredAmount,
+    amountDrops: enteredAmount * 1_000_000,
+    source: process.env.DEPOSIT_WALLET_SECRET,
+    destination,
+    destinationTag,
+    validated: true,
+    raw: result.result,
+    depositType: 'sent',
+    transactionFees: transactionFees,
+  });
+
+  await deposit.save();
   // ✅ Return transaction details
   return {
     hash: txHash,

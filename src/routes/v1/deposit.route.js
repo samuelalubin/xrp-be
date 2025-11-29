@@ -5,6 +5,6 @@ const router = express.Router();
 
 router.get('/deposit-info/:email', depositController.getDepositInfoEmail);
 
-router.get('/deposits', depositController.getDeposit);
+router.post('/deposits', depositController.getDeposit);
 
 module.exports = router;

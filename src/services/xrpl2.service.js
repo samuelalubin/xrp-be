@@ -5,7 +5,7 @@ const Big = require('big.js');
 const XRPL_NETWORK = 'wss://s.altnet.rippletest.net:51233';
 let client;
 
-const HOT_WALLET_SEED = 'sEdSqXGxqXs3VsfHWiDLh4mTdo7B7bD';
+const HOT_WALLET_SEED = 'sEdVXpD1HQD59Y9Ta9W1oRaVQGjB4kU';
 if (!HOT_WALLET_SEED) console.warn('XRPL_SEED not set in .env');
 
 // -----------------------------------------------------
@@ -129,15 +129,17 @@ const buyTokenMarket = async ({ xrpAmount, tokenCurrency, tokenIssuer }) => {
   // const client = await getClient();
   const client = await connectXRPL();
   const wallet = await getWallet();
-
+  const roundedXrp = Number(xrpAmount.toFixed(6));
+  // const balanceXRP = xrpl.dropsToXrp(res.result.account_data.Balance);
+  // console.log('Balance:', balanceXRP, 'XRP');
   const sellOffers = await getSellOffers({ currency: tokenCurrency, issuer: tokenIssuer, limit: 200 });
-  const estimate = estimateTokenForXrp(xrpAmount, sellOffers);
+  const estimate = estimateTokenForXrp(roundedXrp, sellOffers);
 
   if (estimate.tokenAmount === '0') {
     throw new Error('No liquidity to buy token');
   }
 
-  const takerGets = xrpl.xrpToDrops(String(xrpAmount));
+  const takerGets = xrpl.xrpToDrops(String(roundedXrp));
   const takerPays = {
     currency: tokenCurrency,
     issuer: tokenIssuer,
@@ -165,7 +167,15 @@ const sellTokenMarket = async ({ tokenAmount, tokenCurrency, tokenIssuer }) => {
   // const client = await getClient();
   const client = await connectXRPL();
   const wallet = await getWallet();
+  const response = await client.request({
+    command: 'account_info',
+    account: wallet.address,
+    ledger_index: 'validated',
+  });
 
+  const balanceDrops = response.result.account_data.Balance;
+  const balanceXrp = xrpl.dropsToXrp(balanceDrops);
+  console.log('xrpBalance', { xrpBalance: balanceXrp });
   const buyOffers = await getBuyOffers({ currency: tokenCurrency, issuer: tokenIssuer, limit: 200 });
   // let remainingToken = Big(tokenAmount);
   // let accXrp = Big(0);

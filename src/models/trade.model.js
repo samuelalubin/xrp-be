@@ -37,6 +37,9 @@ const TradeSchema = new Schema({
     type: Number,
   }, // Price of a single token during the trade
 
+  amountUsd: {
+    type: Number,
+  }, // Price of a single token during the trade
   transactionFees: {
     type: Number,
     default: 0.9,

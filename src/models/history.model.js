@@ -76,6 +76,17 @@ const HistorySchema = new Schema({
 
   txHash: { type: String },
   status: { type: String, enum: ['pending', 'success', 'failed'], default: 'success' },
+  amountUsd: {
+    type: Number,
+  }, // Price of a single token during the trade
+  transactionFees: {
+    type: Number,
+    default: 0.9,
+  },
+  buyingFees: {
+    type: Number,
+    default: 0,
+  }, // Fees incurred during buying
 
   createdAt: { type: Date, default: Date.now },
 });

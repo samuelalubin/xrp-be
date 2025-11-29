@@ -10,8 +10,13 @@ const DepositSchema = new mongoose.Schema(
     source: { type: String }, // sending address
     destination: { type: String }, // your hot wallet address
     destinationTag: { type: Number, default: null },
+    depositType: { type: String, default: 'received' },
     ledgerIndex: { type: Number },
     validated: { type: Boolean, default: false },
+    transactionFees: {
+      type: Number,
+      default: 0.9,
+    },
     raw: { type: Object }, // full transaction object for auditing
   },
   { timestamps: true }

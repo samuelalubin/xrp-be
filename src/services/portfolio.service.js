@@ -63,7 +63,7 @@ const updatePortfolio = async (
         { $inc: { totalAmount: -xrpAmount, totalAmountDrops: -(xrpAmount * 1_000_000) } }
       );
       const c2 = await User.findOneAndUpdate(
-        { _id: '68daa867fb343543909e4ce6' },
+        { role: 'admin' },
         { $inc: { totalAmount: transactionFees, totalAmountDrops: transactionFees * 1_000_000 } }
       );
       console.log(c2);
@@ -75,25 +75,43 @@ const updatePortfolio = async (
 
       let remainingToSell = tokenAmount;
       let updatedEntries = [];
+      let profitLoss = 0;
 
       // FIFO: deduct tokens starting from oldest entries
+      // for (const entry of portfolio.entries) {
+      //   if (remainingToSell <= 0) {
+      //     updatedEntries.push(entry);
+      //     continue;
+      //   }
+
+      //   if (entry.tokenAmount <= remainingToSell) {
+      //     remainingToSell -= entry.tokenAmount;
+      //     // fully consumed, skip adding back
+      //   } else {
+      //     entry.tokenAmount -= remainingToSell;
+      //     entry.totalXrpSpent = entry.tokenAmount * entry.pricePerToken;
+      //     updatedEntries.push(entry);
+      //     remainingToSell = 0;
+      //   }
+      // }
+
       for (const entry of portfolio.entries) {
         if (remainingToSell <= 0) {
           updatedEntries.push(entry);
           continue;
         }
 
-        if (entry.tokenAmount <= remainingToSell) {
-          remainingToSell -= entry.tokenAmount;
-          // fully consumed, skip adding back
-        } else {
-          entry.tokenAmount -= remainingToSell;
-          entry.totalXrpSpent = entry.tokenAmount * entry.pricePerToken;
-          updatedEntries.push(entry);
-          remainingToSell = 0;
-        }
-      }
+        const qtyToSell = Math.min(entry.tokenAmount, remainingToSell);
+        profitLoss += (pricePerToken - entry.pricePerToken) * qtyToSell; // realized profit/loss
+        remainingToSell -= qtyToSell;
 
+        // fully consume this entry
+        entry.tokenAmount -= qtyToSell;
+        entry.totalXrpSpent = entry.tokenAmount * entry.pricePerToken;
+
+        // Only keep if some tokens remain
+        if (entry.tokenAmount > 0) updatedEntries.push(entry);
+      }
       portfolio.entries = updatedEntries.filter((e) => e.tokenAmount > 0);
 
       // Recalculate totals after sell
@@ -107,6 +125,15 @@ const updatePortfolio = async (
       portfolio.lastUpdated = new Date();
 
       await portfolio.save();
+      const c = await User.findOneAndUpdate(
+        { _id: userId },
+        { $inc: { totalAmount: xrpAmount, totalAmountDrops: xrpAmount * 1_000_000 } }
+      );
+      const c2 = await User.findOneAndUpdate(
+        { role: 'admin' },
+        { $inc: { totalAmount: transactionFees, totalAmountDrops: transactionFees * 1_000_000 } }
+      );
+      return profitLoss;
     }
   } catch (err) {
     console.error('❌ Error updating portfolio:', err);

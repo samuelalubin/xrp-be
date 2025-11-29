@@ -49,10 +49,10 @@ const saveDeposit = async (tx) => {
 };
 
 // Get deposits (demo)
-const getDeposit = async () => {
-  console.log('chalyy8');
+const getDeposit = async (filter, options) => {
+  console.log(filter, options, 'chalyy8');
 
-  const deposits = await Deposit.find();
+  const deposits = await Deposit.paginate(filter, options);
   //   .sort({ createdAt: -1 }).limit(50).populate('userId');
   return deposits;
 };
