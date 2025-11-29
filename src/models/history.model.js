@@ -1,6 +1,7 @@
 // models/history.model.js
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
+const { toJSON, paginate } = require('./plugins');
 
 const HistorySchema = new Schema({
   // userId: {
@@ -90,5 +91,8 @@ const HistorySchema = new Schema({
 
   createdAt: { type: Date, default: Date.now },
 });
+
+HistorySchema.plugin(toJSON);
+HistorySchema.plugin(paginate);
 
 module.exports = mongoose.model('History', HistorySchema);

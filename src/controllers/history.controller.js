@@ -1,5 +1,6 @@
 // controllers/history.controller.js
 const { historyService } = require('../services');
+const pick = require('../utils/pick');
 
 const createHistory = async (req, res) => {
   try {
@@ -21,6 +22,17 @@ const getUserHistory = async (req, res) => {
     const userId = req.params.userId || req.user?._id;
     const records = await historyService.getUserHistory(userId);
     res.status(200).json({ success: true, data: records });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const getHistory = async (req, res) => {
+  try {
+    let filter = {};
+    const options = pick(req.body, ['sortBy', 'limit', 'page']);
+    const records = await historyService.getHistory(filter, options);
+    res.send(records);
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -76,4 +88,5 @@ module.exports = {
   getUserMemecoinHistory,
   deleteHistory,
   getHistoryByIdentifier,
+  getHistory,
 };

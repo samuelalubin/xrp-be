@@ -53,6 +53,13 @@ const getUserHistory = async (userId) => {
 };
 
 /**
+ * Get all history for a user (all tokens)
+ */
+const getHistory = async (filter, options) => {
+  return await History.paginate(filter, options);
+};
+
+/**
  * Delete a history record
  */
 const deleteHistory = async (id) => {
@@ -70,4 +77,5 @@ module.exports = {
   deleteHistory,
   createFromTrade,
   getHistoryByIdentifier,
+  getHistory,
 };

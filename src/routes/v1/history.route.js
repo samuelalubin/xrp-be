@@ -14,5 +14,6 @@ router.get('/user/:userId', historyController.getUserHistory);
 router.get('/:userId/:identifier', historyController.getUserMemecoinHistory);
 router.delete('/:id', historyController.deleteHistory);
 router.get('/:identifier', historyController.getHistoryByIdentifier);
+router.post('/history', historyController.getHistory);
 
 module.exports = router;
