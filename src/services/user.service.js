@@ -21,7 +21,7 @@ const createUser = async (userBody) => {
   console.log(email, password, name);
   const last = await DestinationMapping.findOne().sort({ destinationTag: -1 });
   const nextTag = last ? last.destinationTag + 1 : 1000;
-
+  const company = await Company.findOne({});
   const user = new User({
     email,
     password,
@@ -32,6 +32,7 @@ const createUser = async (userBody) => {
       destinationTag: nextTag,
       memo: `Send XRP to address and include destinationTag ${nextTag}`,
     },
+    companyId: company._id,
   });
   await user.save();
 
