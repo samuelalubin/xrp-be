@@ -5,6 +5,7 @@ const DestinationMapping = require('./models/destinationMapping.model');
 const User = require('./models/user.model');
 const { DEPOSIT_WALLET_ADDRESS, XRPL_SERVER } = process.env;
 const { getIO } = require('./socket');
+const { Company } = require('./models');
 
 const getXrpUsdPrice = async () => {
   // const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ripple&vs_currencies=usd');
@@ -17,15 +18,16 @@ const calculateFees = async (xrpAmount) => {
   const xrpUsdPrice = await getXrpUsdPrice();
 
   // 0.15% fee in XRP
-  const percentageFeeXrp = xrpAmount * 0.0015;
-  console.log(percentageFeeXrp, 'xrpUsdPrice');
-
+  // const percentageFeeXrp = xrpAmount * 0.0015;
+  // console.log(percentageFeeXrp, 'xrpUsdPrice');
+  const company = await Company.findOne();
   // Minimum fee $0.95 converted to XRP
-  const minFeeXrp = 0.95 / xrpUsdPrice;
+  // const minFeeXrp = 0.95 / xrpUsdPrice;
+  const minFeeXrp = company.transactionFee / xrpUsdPrice;
   console.log(minFeeXrp, 'xrpUsdPrice');
 
   // Pick the larger fee
-  const feeXrp = Math.max(percentageFeeXrp, minFeeXrp);
+  const feeXrp = Math.max(0, minFeeXrp);
   console.log(feeXrp, 'xrpUsdPrice');
   console.log(xrpAmount - feeXrp, 'xrpUsdPrice');
 

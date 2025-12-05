@@ -45,6 +45,9 @@ const paginate = (schema) => {
         path: 'userId',
         select: 'name',
       })
+      .populate({
+        path: 'companyId',
+      })
       .sort(sort)
       .skip(skip)
       .limit(limit);

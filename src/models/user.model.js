@@ -11,6 +11,11 @@ const userSchema = mongoose.Schema(
       required: true,
       trim: true,
     },
+    companyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Company',
+      // required: true,
+    },
     email: {
       type: String,
       required: true,
@@ -55,6 +60,10 @@ const userSchema = mongoose.Schema(
       default: 'user',
     },
     isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    delete: {
       type: Boolean,
       default: false,
     },

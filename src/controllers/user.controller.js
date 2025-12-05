@@ -88,6 +88,11 @@ const stats = catchAsync(async (req, res) => {
   res.send(obj);
 });
 
+const updateCompany = catchAsync(async (req, res) => {
+  const company = await userService.updateCompanyById(req.params.companyId, req.body);
+  res.send(company);
+});
+
 module.exports = {
   createUser,
   getUsers,
@@ -95,4 +100,5 @@ module.exports = {
   updateUser,
   deleteUser,
   stats,
+  updateCompany,
 };

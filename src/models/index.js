@@ -7,3 +7,4 @@ module.exports.Transfer = require('./transfer.model');
 module.exports.Trade = require('./trade.model');
 module.exports.Portfolio = require('./portfolio.model');
 module.exports.History = require('./history.model');
+module.exports.Company = require('./company.model');

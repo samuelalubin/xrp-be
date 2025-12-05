@@ -36,6 +36,7 @@ const updateUser = {
       password: Joi.string().custom(password),
       oldPassword: Joi.string().custom(password),
       name: Joi.string(),
+      delete: Joi.boolean(),
     })
     .min(1),
 };
@@ -45,6 +46,17 @@ const deleteUser = {
     userId: Joi.string().custom(objectId),
   }),
 };
+const updateCompany = {
+  params: Joi.object().keys({
+    companyId: Joi.required().custom(objectId),
+  }),
+  body: Joi.object()
+    .keys({
+      transactionFee: Joi.number(),
+      policy: Joi.string(),
+    })
+    .min(1),
+};
 
 module.exports = {
   createUser,
@@ -52,4 +64,5 @@ module.exports = {
   getUser,
   updateUser,
   deleteUser,
+  updateCompany,
 };

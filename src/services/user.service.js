@@ -2,6 +2,7 @@ const httpStatus = require('http-status');
 // const { User, DestinationMapping } = require('../models');
 const ApiError = require('../utils/ApiError');
 const User = require('../models/user.model');
+const Company = require('../models/company.model');
 const DestinationMapping = require('../models/destinationMapping.model');
 const { DEPOSIT_WALLET_ADDRESS } = process.env;
 
@@ -61,7 +62,7 @@ const createUser = async (userBody) => {
  * @returns {Promise<QueryResult>}
  */
 const queryUsers = async (filter, options) => {
-  const users = await User.paginate(filter, options);
+  const users = await User.paginate({ ...filter, delete: { $ne: true } }, options);
   return users;
 };
 
@@ -73,7 +74,7 @@ const queryUsers = async (filter, options) => {
 const getUserById = async (id) => {
   console.log('chalyy10');
 
-  return User.findById(id);
+  return User.findById(id).populate('companyId');
 };
 
 /**
@@ -82,7 +83,7 @@ const getUserById = async (id) => {
  * @returns {Promise<User>}
  */
 const getUserByEmail = async (email) => {
-  return User.findOne({ email });
+  return User.findOne({ email }).populate('companyId');
 };
 
 /**
@@ -143,6 +144,19 @@ const aggregateStats = async ({ model, dateField, lastNDays, sumField }) => {
   return aggregation;
 };
 
+const updateCompanyById = async (companyId, updateBody) => {
+  const company = await Company.findById(companyId);
+
+  if (!company) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Company not found');
+  }
+
+  Object.assign(company, updateBody);
+  await company.save();
+
+  return company;
+};
+
 module.exports = {
   createUser,
   queryUsers,
@@ -151,4 +165,5 @@ module.exports = {
   updateUserById,
   deleteUserById,
   aggregateStats,
+  updateCompanyById,
 };

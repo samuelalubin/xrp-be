@@ -5,7 +5,19 @@ const userValidation = require('../../validations/user.validation');
 const userController = require('../../controllers/user.controller');
 
 const router = express.Router();
+// router.get('/assign-company/all', async (req, res) => {
+//   try {
+//     const updated = await User.updateMany({}, { $set: { companyId: '693301817b342e67f0f0f107' } });
 
+//     res.json({
+//       message: 'All users updated',
+//       matched: updated.matchedCount,
+//       modified: updated.modifiedCount,
+//     });
+//   } catch (err) {
+//     res.status(500).json({ message: 'Bulk update failed' });
+//   }
+// });
 router.get('/insights', userController.stats);
 router
   .route('/')
@@ -14,9 +26,10 @@ router
 
 router
   .route('/:userId')
-  .get(auth('getUsers'), validate(userValidation.getUser), userController.getUser)
+  .get(validate(userValidation.getUser), userController.getUser)
   .patch(validate(userValidation.updateUser), userController.updateUser)
   .delete(auth('manageUsers'), validate(userValidation.deleteUser), userController.deleteUser);
+router.patch('/company/:companyId', validate(userValidation.updateCompany), userController.updateCompany);
 
 module.exports = router;
 

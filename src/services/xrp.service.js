@@ -100,7 +100,7 @@
 // ________________________________________________________
 
 const xrpl = require('xrpl');
-const { User, Deposit } = require('../models');
+const { User, Deposit, Company } = require('../models');
 const Transfer = require('../models/transfer.model');
 const { getIO } = require('../socket');
 
@@ -121,15 +121,16 @@ const calculateFees = async (xrpAmount) => {
   const xrpUsdPrice = await getXrpUsdPrice();
 
   // 0.15% fee in XRP
-  const percentageFeeXrp = xrpAmount * 0.0015;
-  console.log(percentageFeeXrp, 'xrpUsdPrice');
+  // const percentageFeeXrp = xrpAmount * 0.0015;
+  // console.log(percentageFeeXrp, 'xrpUsdPrice');
+  const company = await Company.findOne();
 
   // Minimum fee $0.95 converted to XRP
-  const minFeeXrp = 0.95 / xrpUsdPrice;
+  const minFeeXrp = company.transactionFee / xrpUsdPrice;
   console.log(minFeeXrp, 'xrpUsdPrice');
 
   // Pick the larger fee
-  const feeXrp = Math.max(percentageFeeXrp, minFeeXrp);
+  const feeXrp = Math.max(0, minFeeXrp);
   console.log(feeXrp, 'xrpUsdPrice');
   console.log(xrpAmount - feeXrp, 'xrpUsdPrice');
 
