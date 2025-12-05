@@ -3,6 +3,7 @@ const Portfolio = require('../models/portfolio.model');
 const getUserPortfolio = async (req, res) => {
   try {
     const { userId } = req.params;
+    console.log(userId, 'userId');
     if (!userId) return res.status(400).json({ error: 'Missing userId' });
 
     const portfolio = await Portfolio.find({ userId });

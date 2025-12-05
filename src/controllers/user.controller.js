@@ -3,6 +3,7 @@ const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { userService } = require('../services');
+const { User, History } = require('../models');
 
 const createUser = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body);
@@ -36,10 +37,62 @@ const deleteUser = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+const getXrpUsdPrice = async () => {
+  // const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ripple&vs_currencies=usd');
+  const response = await fetch('https://min-api.cryptocompare.com/data/pricemulti?fsyms=XRP&tsyms=USD');
+  const data = await response.json();
+  console.log(data);
+  // return data.ripple.usd; // price in USD
+  return data.XRP.USD; // price in USD
+};
+const stats = catchAsync(async (req, res) => {
+  const xrpPriceUSD = await getXrpUsdPrice();
+
+  // Users
+  const users30 = await userService.aggregateStats({ model: User, dateField: 'createdAt', lastNDays: 30 });
+  const users365 = await userService.aggregateStats({ model: User, dateField: 'createdAt', lastNDays: 365 });
+
+  // Trades
+  const trades30 = await userService.aggregateStats({ model: History, dateField: 'createdAt', lastNDays: 30 });
+  const trades365 = await userService.aggregateStats({ model: History, dateField: 'createdAt', lastNDays: 365 });
+
+  // Revenue (sum of transactionFees in XRP, converted to USD)
+  const revenue30XRP = await userService.aggregateStats({
+    model: History,
+    dateField: 'createdAt',
+    lastNDays: 30,
+    sumField: 'transactionFees',
+  });
+  const revenue365XRP = await userService.aggregateStats({
+    model: History,
+    dateField: 'createdAt',
+    lastNDays: 365,
+    sumField: 'transactionFees',
+  });
+
+  // Convert revenue to USD
+  const revenue30 = revenue30XRP.map((item) => ({
+    _id: item._id,
+    revenueUSD: item.count * xrpPriceUSD,
+  }));
+  const revenue365 = revenue365XRP.map((item) => ({
+    _id: item._id,
+    revenueUSD: item.count * xrpPriceUSD,
+  }));
+
+  const obj = {
+    users: { users30, users365 },
+    trades: { trades30, trades365 },
+    revenue: { revenue30, revenue365 },
+  };
+  res.send(obj);
+});
+
 module.exports = {
   createUser,
   getUsers,
   getUser,
   updateUser,
   deleteUser,
+  stats,
 };

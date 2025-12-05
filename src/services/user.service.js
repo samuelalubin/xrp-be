@@ -101,6 +101,11 @@ const updateUserById = async (userId, updateBody) => {
   if (updateBody.email && (await User.isEmailTaken(updateBody.email, userId))) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
+  if (updateBody?.oldPassword) {
+    if (!(await user.isPasswordMatch(updateBody?.oldPassword))) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect password');
+    }
+  }
   Object.assign(user, updateBody);
   await user.save();
   return user;
@@ -119,6 +124,24 @@ const deleteUserById = async (userId) => {
   await user.remove();
   return user;
 };
+const aggregateStats = async ({ model, dateField, lastNDays, sumField }) => {
+  const now = new Date();
+  const startDate = new Date();
+  startDate.setDate(now.getDate() - lastNDays);
+
+  const aggregation = await model.aggregate([
+    { $match: { [dateField]: { $gte: startDate } } },
+    {
+      $group: {
+        _id: { year: { $year: `$${dateField}` }, month: { $month: `$${dateField}` } },
+        count: sumField ? { $sum: `$${sumField}` } : { $sum: 1 },
+      },
+    },
+    { $sort: { '_id.year': 1, '_id.month': 1 } },
+  ]);
+
+  return aggregation;
+};
 
 module.exports = {
   createUser,
@@ -127,4 +150,5 @@ module.exports = {
   getUserByEmail,
   updateUserById,
   deleteUserById,
+  aggregateStats,
 };
