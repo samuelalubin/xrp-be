@@ -112,7 +112,9 @@ const { getIO } = require('../socket');
  */
 const getXrpUsdPrice = async () => {
   // const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ripple&vs_currencies=usd');
-  const response = await fetch('https://min-api.cryptocompare.com/data/pricemulti?fsyms=XRP&tsyms=USD');
+  const response = await fetch(
+    'https://min-api.cryptocompare.com/data/pricemulti?fsyms=XRP&tsyms=USD&api_key=cac4cc4bdd9088646112252cc2cab4eebe9c927483b7a93d8f77d5f83e464151'
+  );
   const data = await response.json();
   // return data.ripple.usd; // price in USD
   return data.XRP.USD; // price in USD
