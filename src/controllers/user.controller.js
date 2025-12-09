@@ -38,12 +38,12 @@ const deleteUser = catchAsync(async (req, res) => {
 });
 
 const getXrpUsdPrice = async () => {
-  // const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ripple&vs_currencies=usd');
-  const response = await fetch('https://min-api.cryptocompare.com/data/pricemulti?fsyms=XRP&tsyms=USD');
+  const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ripple&vs_currencies=usd');
+  // const response = await fetch('https://min-api.cryptocompare.com/data/pricemulti?fsyms=XRP&tsyms=USD');
   const data = await response.json();
   console.log(data);
-  // return data.ripple.usd; // price in USD
-  return data.XRP.USD; // price in USD
+  return data.ripple.usd; // price in USD
+  // return data.XRP.USD; // price in USD
 };
 const stats = catchAsync(async (req, res) => {
   const xrpPriceUSD = await getXrpUsdPrice();
