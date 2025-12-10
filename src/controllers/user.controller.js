@@ -3,7 +3,7 @@ const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { userService } = require('../services');
-const { User, History } = require('../models');
+const { User, History, Deposit } = require('../models');
 
 const createUser = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body);
@@ -72,6 +72,19 @@ const stats = catchAsync(async (req, res) => {
     sumField: 'transactionFees',
   });
 
+  const deposit30XRP = await userService.aggregateStats({
+    model: Deposit,
+    dateField: 'createdAt',
+    lastNDays: 30,
+    sumField: 'transactionFees',
+  });
+  const deposit365XRP = await userService.aggregateStats({
+    model: Deposit,
+    dateField: 'createdAt',
+    lastNDays: 365,
+    sumField: 'transactionFees',
+  });
+
   // Convert revenue to USD
   const revenue30 = revenue30XRP.map((item) => ({
     _id: item._id,
@@ -82,10 +95,20 @@ const stats = catchAsync(async (req, res) => {
     revenueUSD: item.count * xrpPriceUSD,
   }));
 
+  const deposit30 = deposit30XRP.map((item) => ({
+    _id: item._id,
+    revenueUSD: item.count * xrpPriceUSD,
+  }));
+  const deposit365 = deposit365XRP.map((item) => ({
+    _id: item._id,
+    revenueUSD: item.count * xrpPriceUSD,
+  }));
+  const o1 = [...revenue30, ...deposit30];
+  const o2 = [...revenue365, ...deposit365];
   const obj = {
     users: { users30, users365 },
     trades: { trades30, trades365 },
-    revenue: { revenue30, revenue365 },
+    revenue: { revenue30: o1, revenue365: o2 },
   };
   res.send(obj);
 });
