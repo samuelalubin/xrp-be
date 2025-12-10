@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 const { toJSON, paginate } = require('./plugins');
 
 const CompanySchema = new mongoose.Schema({
-  transactionFee: { type: Number },
+  transactionFee: { type: Number, default: 0.95 },
+  transactionFeePercentage: { type: Number, default: 0.15 },
   policy: { type: String },
 });
 

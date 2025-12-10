@@ -53,6 +53,7 @@ const updateCompany = {
   body: Joi.object()
     .keys({
       transactionFee: Joi.number(),
+      transactionFeePercentage: Joi.number(),
       policy: Joi.string(),
     })
     .min(1),

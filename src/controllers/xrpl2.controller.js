@@ -19,20 +19,23 @@ const getXrpUsdPrice = async () => {
 };
 const calculateFees = async (xrpAmount) => {
   const xrpUsdPrice = await getXrpUsdPrice();
+  const company = await Company.findOne();
 
   // 0.15% fee in XRP
   // const percentageFeeXrp = xrpAmount * 0.0015;
+  const percentageFeeXrp = xrpAmount * (company.transactionFeePercentage / 100);
+
   // console.log(percentageFeeXrp, 'xrpUsdPrice');
 
   // Minimum fee $0.95 converted to XRP
-  const company = await Company.findOne();
+  // const company = await Company.findOne();
 
   const minFeeXrp = company.transactionFee / xrpUsdPrice;
   console.log(minFeeXrp, 'xrpUsdPrice');
 
   // Pick the larger fee
   // const feeXrp = Math.max(percentageFeeXrp, minFeeXrp);
-  const feeXrp = Math.max(0, minFeeXrp);
+  const feeXrp = Math.max(percentageFeeXrp, minFeeXrp);
   console.log(feeXrp, 'xrpUsdPrice');
   console.log(xrpAmount - feeXrp, 'xrpUsdPrice');
 
