@@ -169,7 +169,7 @@ const buyMemecoinController = async (req, res) => {
     // 2️⃣ Transaction details
     const txHash = txResult?.result?.hash || txResult?.tx_json?.hash;
     const totalAmountDrops = xrpl.xrpToDrops(xrpAmount);
-    const wallet = xrpl.Wallet.fromSeed(seed);
+    const wallet = xrpl.Wallet.fromSeed(seed, { algorithm: 'secp256k1' });
 
     // 3️⃣ Get live XRP balance
     await client.connect();

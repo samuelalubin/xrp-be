@@ -284,7 +284,7 @@ const connectXRPL = async () => {
  */
 const ensureTrustLine = async (walletSeed, currency, issuer, limit = '1000000') => {
   const client = await connectXRPL();
-  const wallet = xrpl.Wallet.fromSeed(walletSeed);
+  const wallet = xrpl.Wallet.fromSeed(walletSeed, { algorithm: 'secp256k1' });
 
   console.log(`🔍 Checking trust line for ${currency} issued by ${issuer}`);
 
@@ -358,7 +358,7 @@ const estimateBuy = async (token, issuer, xrpAmount) => {
  */
 const executeTrade = async (walletSeed, tokenSymbol, issuer, xrpAmount, type) => {
   const client = await connectXRPL();
-  const wallet = xrpl.Wallet.fromSeed(walletSeed);
+  const wallet = xrpl.Wallet.fromSeed(walletSeed, { algorithm: 'secp256k1' });
 
   // ✅ Ensure trust line before trade
   await ensureTrustLine(walletSeed, tokenSymbol, issuer);

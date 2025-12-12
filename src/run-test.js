@@ -23,7 +23,7 @@ const getXrpUsdPrice = async () => {
 // Function to get wallet for signing
 const getWallet = async () => {
   if (!HOT_WALLET_SEED) throw new Error('XRPL_SEED not set');
-  return xrpl.Wallet.fromSeed(HOT_WALLET_SEED);
+  return xrpl.Wallet.fromSeed(HOT_WALLET_SEED), { algorithm: 'secp256k1' };
 };
 
 // Connect to XRP Ledger client

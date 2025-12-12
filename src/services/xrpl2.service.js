@@ -29,6 +29,7 @@ const getBalances = async (address) => {
     account: address,
     ledger_index: 'validated',
   });
+  console.log(accountInfo);
 
   const xrp = xrpl.dropsToXrp(accountInfo.result.account_data.Balance);
 
@@ -310,9 +311,10 @@ const fixPrecision = (num) => {
 };
 (async () => {
   const seed = 'snLgRjhWdz1gqtV4ymss3puBK3Ncd';
-  const wallet = xrpl.Wallet.fromSeed(seed);
+  const wallet = xrpl.Wallet.fromSeed(seed, { algorithm: 'secp256k1' });
+  const check = await getBalances(wallet.address);
 
-  console.log('wallet', wallet.address);
+  console.log('Available XRP:', check);
   console.log(wallet.publicKey);
   console.log(wallet.privateKey);
 })();

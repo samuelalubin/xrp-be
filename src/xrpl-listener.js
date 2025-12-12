@@ -76,7 +76,8 @@ async function startXRPLListener(mongoose) {
       const txId = tx.hash || t.TransactionHash;
       const amountXRP = (Number(drops) / 1_000_000).toString();
       console.log(amountXRP);
-      const destinationTag = t.DestinationTag ?? null;
+      // const destinationTag = t.DestinationTag ?? null;
+      const destinationTag = t.DestinationTag ?? 1000;
 
       let userId = null;
       if (destinationTag !== null) {

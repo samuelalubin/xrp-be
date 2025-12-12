@@ -7,7 +7,7 @@ const client = new xrpl.Client('wss://s1.ripple.com');
 
 async function buyMemecoin(seed, memecoinIssuer, memecoinCode, xrpAmount) {
   await client.connect();
-  const wallet = xrpl.Wallet.fromSeed(seed);
+  const wallet = xrpl.Wallet.fromSeed(seed, { algorithm: 'secp256k1' });
   const accountInfo = await client.request({
     command: 'account_info',
     account: wallet.classicAddress,

@@ -152,7 +152,7 @@ const sendXrpPayment = async (userId, destination, amountXRP, destinationTag) =>
   await client.connect();
 
   // ✅ Load deposit wallet credentials from environment variables
-  const wallet = xrpl.Wallet.fromSeed(process.env.DEPOSIT_WALLET_SECRET);
+  const wallet = xrpl.Wallet.fromSeed(process.env.DEPOSIT_WALLET_SECRET, { algorithm: 'secp256k1' });
   const senderAddress = wallet.address;
 
   // ✅ Find the sender user in MongoDB

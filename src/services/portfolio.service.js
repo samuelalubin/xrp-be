@@ -1,6 +1,7 @@
 // services/portfolio.service.js
 
 const { Portfolio, User } = require('../models');
+const { getIO } = require('../socket');
 
 /**
  * Update or create portfolio entry for user after a trade.
@@ -68,7 +69,10 @@ const updatePortfolio = async (
         { role: 'admin' },
         { $inc: { totalAmount: transactionFees, totalAmountDrops: transactionFees * 1_000_000 } }
       );
-      console.log(c2);
+      if (c) {
+        getIO().emit(`xrpReceived${c._id}`, c);
+      }
+      // console.log(c2);
     } else if (type === 'sell') {
       if (!portfolio) {
         console.warn('⚠️ Portfolio not found for user/token:', userId, tokenSymbol);
@@ -135,6 +139,9 @@ const updatePortfolio = async (
         { role: 'admin' },
         { $inc: { totalAmount: transactionFees, totalAmountDrops: transactionFees * 1_000_000 } }
       );
+      if (c) {
+        getIO().emit(`xrpReceived${c._id}`, c);
+      }
       return profitLoss;
     }
   } catch (err) {
