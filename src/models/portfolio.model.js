@@ -6,6 +6,7 @@ const PortfolioSchema = new Schema({
   tokenSymbol: { type: String, required: true },
   issuer: { type: String, required: true },
   identifier: { type: String, unique: true, required: true }, // userId-tokenSymbol combo
+  icon: { type: String },
 
   // entries: [EntrySchema],
 

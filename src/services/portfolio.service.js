@@ -14,7 +14,8 @@ const updatePortfolio = async (
   tokenAmount,
   xrpAmount,
   pricePerToken,
-  transactionFees
+  transactionFees,
+  image
 ) => {
   try {
     const identifier = `${userId}-${tokenSymbol}`;
@@ -38,6 +39,7 @@ const updatePortfolio = async (
           totalTokenHeld: tokenAmount,
           totalInvestedXRP: xrpAmount,
           averageEntryPrice: pricePerToken,
+          icon: image,
         });
       } else {
         // Add a new entry
@@ -51,7 +53,7 @@ const updatePortfolio = async (
         const totalTokenHeld = portfolio.entries.reduce((sum, e) => sum + e.tokenAmount, 0);
         const totalInvestedXRP = portfolio.entries.reduce((sum, e) => sum + e.totalXrpSpent, 0);
         const averageEntryPrice = totalInvestedXRP / totalTokenHeld;
-
+        // portfolio.icon = image;
         portfolio.totalTokenHeld = totalTokenHeld;
         portfolio.totalInvestedXRP = totalInvestedXRP;
         portfolio.averageEntryPrice = averageEntryPrice;

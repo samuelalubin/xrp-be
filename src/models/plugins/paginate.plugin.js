@@ -43,7 +43,7 @@ const paginate = (schema) => {
     let docsPromise = this.find(filter)
       .populate({
         path: 'userId',
-        select: 'name',
+        select: 'name destinationTag',
       })
       .populate({
         path: 'companyId',

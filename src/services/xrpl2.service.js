@@ -2,10 +2,12 @@ const xrpl = require('xrpl');
 // const getClient = require('../config/xrplClient');
 const Big = require('big.js');
 
-const XRPL_NETWORK = 'wss://s.altnet.rippletest.net:51233';
+// const XRPL_NETWORK = 'wss://s.altnet.rippletest.net:51233';
+const XRPL_NETWORK = 'wss://s1.ripple.com';
 let client;
 
-const HOT_WALLET_SEED = 'sEdVXpD1HQD59Y9Ta9W1oRaVQGjB4kU';
+// const HOT_WALLET_SEED = 'sEdVXpD1HQD59Y9Ta9W1oRaVQGjB4kU';
+const HOT_WALLET_SEED = 'snLgRjhWdz1gqtV4ymss3puBK3Ncd';
 if (!HOT_WALLET_SEED) console.warn('XRPL_SEED not set in .env');
 
 // -----------------------------------------------------
@@ -13,7 +15,7 @@ if (!HOT_WALLET_SEED) console.warn('XRPL_SEED not set in .env');
 // -----------------------------------------------------
 const getWallet = async () => {
   if (!HOT_WALLET_SEED) throw new Error('XRPL_SEED not set');
-  return xrpl.Wallet.fromSeed(HOT_WALLET_SEED);
+  return xrpl.Wallet.fromSeed(HOT_WALLET_SEED, { algorithm: 'secp256k1' });
 };
 
 // -----------------------------------------------------
@@ -45,16 +47,20 @@ const createTrustline = async ({ currency, issuer, limit = '1000000000' }) => {
   // const client = await getClient();
   const client = await connectXRPL();
   const wallet = await getWallet();
-
+  console.log('trust 1', wallet.address, HOT_WALLET_SEED);
+  console.log('2222222222', wallet);
   const tx = {
     TransactionType: 'TrustSet',
-    Account: wallet.address,
+    Account: 'raD6xuCTKCJpAcW4pnqeuuUUiMREhbbDFJ',
     LimitAmount: { currency, issuer, value: limit },
   };
 
   const prepared = await client.autofill(tx);
+  console.log('trust 2');
+
   const signed = wallet.sign(prepared);
   const result = await client.submitAndWait(signed.tx_blob);
+  console.log('trust 3');
 
   return { result, tx_hash: signed.hash };
 };
@@ -129,6 +135,7 @@ const buyTokenMarket = async ({ xrpAmount, tokenCurrency, tokenIssuer }) => {
   // const client = await getClient();
   const client = await connectXRPL();
   const wallet = await getWallet();
+  console.log('buy step 1');
   const roundedXrp = Number(xrpAmount.toFixed(6));
   // const balanceXRP = xrpl.dropsToXrp(res.result.account_data.Balance);
   // console.log('Balance:', balanceXRP, 'XRP');
@@ -267,6 +274,7 @@ const sellTokenMarket = async ({ tokenAmount, tokenCurrency, tokenIssuer }) => {
     Account: wallet.address,
     TakerGets: xrpl.xrpToDrops(xrpToReceive),
     TakerPays: { currency: tokenCurrency, issuer: tokenIssuer, value: fixPrecision(tokenAmount) },
+    // Flags: xrpl.OfferCreateFlags.tfImmediateOrCancel,
   };
 
   const prepared = await client.autofill(tx);
@@ -300,7 +308,14 @@ const fixPrecision = (num) => {
     .toPrecision(15)
     .replace(/\.?0+$/, '');
 };
+(async () => {
+  const seed = 'snLgRjhWdz1gqtV4ymss3puBK3Ncd';
+  const wallet = xrpl.Wallet.fromSeed(seed);
 
+  console.log('wallet', wallet.address);
+  console.log(wallet.publicKey);
+  console.log(wallet.privateKey);
+})();
 // -----------------------------------------------------
 // EXPORT ALL ARROW FUNCTIONS
 // -----------------------------------------------------

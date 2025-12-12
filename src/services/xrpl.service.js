@@ -262,7 +262,8 @@
 
 const xrpl = require('xrpl');
 
-const XRPL_NETWORK = 'wss://s.altnet.rippletest.net:51233';
+// const XRPL_NETWORK = 'wss://s.altnet.rippletest.net:51233';
+const XRPL_NETWORK = 'wss://s1.ripple.com';
 let client;
 
 /**

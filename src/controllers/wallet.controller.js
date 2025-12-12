@@ -5,7 +5,8 @@ const catchAsync = require('../utils/catchAsync');
 const { walletService } = require('../services');
 const { buyMemecoin } = require('../services/xrpMemecoin.service');
 const xrpl = require('xrpl');
-const client = new xrpl.Client('wss://s.altnet.rippletest.net:51233');
+// const client = new xrpl.Client('wss://s.altnet.rippletest.net:51233');
+const client = new xrpl.Client('wss://s1.ripple.com');
 const Wallet = require('../models/wallet.model');
 
 const createWallet = catchAsync(async (req, res) => {

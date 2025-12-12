@@ -22,13 +22,10 @@ const calculateFees = async (xrpAmount) => {
   const company = await Company.findOne();
 
   // 0.15% fee in XRP
-  // const percentageFeeXrp = xrpAmount * 0.0015;
   const percentageFeeXrp = xrpAmount * (company.transactionFeePercentage / 100);
-
   // console.log(percentageFeeXrp, 'xrpUsdPrice');
 
   // Minimum fee $0.95 converted to XRP
-  // const company = await Company.findOne();
 
   const minFeeXrp = company.transactionFee / xrpUsdPrice;
   console.log(minFeeXrp, 'xrpUsdPrice');
@@ -50,7 +47,7 @@ const calculateFees = async (xrpAmount) => {
 // Fetch real-time XRP price in USD from CoinGecko
 const buyToken = async (req, res) => {
   try {
-    const { issuer, userId, currency, amountXrp, amountUsd, priceFromPortal } = req.body;
+    const { issuer, userId, currency, amountXrp, currencyHex, amountUsd, priceFromPortal, image } = req.body;
     const xrpUsdPrice = await getXrpUsdPrice();
     const xrpAmount = amountUsd / xrpUsdPrice;
     const { transactionFees, buyingFees } = await calculateFees(xrpAmount);
@@ -70,14 +67,14 @@ const buyToken = async (req, res) => {
 
     // ---- Create trustline (required before buy) ----
     await xrplService2.createTrustline({
-      currency,
+      currency: currencyHex,
       issuer,
     });
 
     // ---- Buy token ----
     const buyResult = await xrplService2.buyTokenMarket({
       xrpAmount: xrpAmount,
-      tokenCurrency: currency,
+      tokenCurrency: currencyHex,
       tokenIssuer: issuer,
     });
     const slippageTolerance = 0.001; // 0.1%
@@ -117,7 +114,8 @@ const buyToken = async (req, res) => {
         buyResult.tokenAmountBought,
         xrpAmount,
         xrpAmount / buyResult.tokenAmountBought,
-        transactionFees
+        transactionFees,
+        image
       );
       await historyService.createHistory({
         userId,
@@ -159,7 +157,7 @@ const buyToken = async (req, res) => {
 
 const sellToken = async (req, res) => {
   try {
-    const { issuer, userId, currency, tokenAmount, priceFromPortal } = req.body;
+    const { issuer, userId, currency, tokenAmount, priceFromPortal, currencyHex } = req.body;
 
     if (!currency || !tokenAmount) return res.status(400).json({ message: 'currency & tokenAmount required' });
 
@@ -170,11 +168,14 @@ const sellToken = async (req, res) => {
     // ---- Auto-get issuer ----
     // let issuer = await getTokenIssuer(currency);
     if (!issuer) return res.status(400).json({ message: 'Issuer not found for token' });
-
+    await xrplService2.createTrustline({
+      currency: currencyHex,
+      issuer,
+    });
     // ---- Sell token ----
     const sellResult = await xrplService2.sellTokenMarket({
       tokenAmount,
-      tokenCurrency: currency,
+      tokenCurrency: currencyHex,
       tokenIssuer: issuer,
     });
     const xrpAmount = sellResult.xrpReceivedEstimate;

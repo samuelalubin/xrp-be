@@ -21,18 +21,14 @@ const calculateFees = async (xrpAmount) => {
   const company = await Company.findOne();
 
   // 0.15% fee in XRP
-  // const percentageFeeXrp = xrpAmount * 0.0015;
   const percentageFeeXrp = xrpAmount * (company.transactionFeePercentage / 100);
-
   // console.log(percentageFeeXrp, 'xrpUsdPrice');
-  // const company = await Company.findOne();
   // Minimum fee $0.95 converted to XRP
   // const minFeeXrp = 0.95 / xrpUsdPrice;
   const minFeeXrp = company.transactionFee / xrpUsdPrice;
   console.log(minFeeXrp, 'xrpUsdPrice');
 
   // Pick the larger fee
-  // const feeXrp = Math.max(0, minFeeXrp);
   const feeXrp = Math.max(percentageFeeXrp, minFeeXrp);
   console.log(feeXrp, 'xrpUsdPrice');
   console.log(xrpAmount - feeXrp, 'xrpUsdPrice');
@@ -94,6 +90,8 @@ async function startXRPLListener(mongoose) {
       if (exists) {
         console.log('ddddddddddddddd');
         const { transactionFees, buyingFees } = await calculateFees(amountXRP);
+        console.log(transactionFees, buyingFees, 'ddddddddddddddd1');
+
         exists.transactionFees = transactionFees;
         await exists.save();
         console.log(exists);
@@ -115,6 +113,7 @@ async function startXRPLListener(mongoose) {
       } else {
         console.log('2222222');
         const { transactionFees, buyingFees } = await calculateFees(amountXRP);
+        console.log(transactionFees, buyingFees, 'ddddddddddddddd2');
 
         const deposit = new Deposit({
           txId,

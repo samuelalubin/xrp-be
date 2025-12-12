@@ -124,17 +124,14 @@ const calculateFees = async (xrpAmount) => {
   const company = await Company.findOne();
 
   // 0.15% fee in XRP
-  // const percentageFeeXrp = xrpAmount * 0.0015;
   const percentageFeeXrp = xrpAmount * (company.transactionFeePercentage / 100);
   // console.log(percentageFeeXrp, 'xrpUsdPrice');
-  // const company = await Company.findOne();
 
   // Minimum fee $0.95 converted to XRP
   const minFeeXrp = company.transactionFee / xrpUsdPrice;
   console.log(minFeeXrp, 'xrpUsdPrice');
 
   // Pick the larger fee
-  // const feeXrp = Math.max(0, minFeeXrp);
   const feeXrp = Math.max(percentageFeeXrp, minFeeXrp);
   console.log(feeXrp, 'xrpUsdPrice');
   console.log(xrpAmount - feeXrp, 'xrpUsdPrice');
@@ -149,7 +146,9 @@ const calculateFees = async (xrpAmount) => {
 
 const sendXrpPayment = async (userId, destination, amountXRP, destinationTag) => {
   // ✅ Connect to XRPL testnet
-  const client = new xrpl.Client('wss://s.altnet.rippletest.net:51233');
+  // const client = new xrpl.Client('wss://s.altnet.rippletest.net:51233');
+  const client = new xrpl.Client('wss://s1.ripple.com');
+
   await client.connect();
 
   // ✅ Load deposit wallet credentials from environment variables

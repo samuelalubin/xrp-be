@@ -2,7 +2,8 @@
 const xrpl = require('xrpl');
 
 // Connect to Testnet
-const client = new xrpl.Client('wss://s.altnet.rippletest.net:51233');
+// const client = new xrpl.Client('wss://s.altnet.rippletest.net:51233');
+const client = new xrpl.Client('wss://s1.ripple.com');
 
 async function buyMemecoin(seed, memecoinIssuer, memecoinCode, xrpAmount) {
   await client.connect();
